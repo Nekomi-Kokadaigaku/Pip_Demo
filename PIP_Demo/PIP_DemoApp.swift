@@ -171,12 +171,12 @@ class ViewController: NSViewController {
 
     @objc private func togglePIP() {
         guard let pipController = pipController else { return }
-                
-            if pipController.isPictureInPictureActive {
-                pipController.stopPictureInPicture()
-            } else {
-                pipController.startPictureInPicture()
-            }
+
+        if pipController.isPictureInPictureActive {
+            pipController.stopPictureInPicture()
+        } else {
+            pipController.startPictureInPicture()
+        }
     }
 
     override func viewDidLayout() {
