@@ -5,8 +5,8 @@
 //  Created by Iris on 2025-02-16.
 //
 
-import SwiftUI
 import AVKit
+import SwiftUI
 
 @main
 struct PIP_DemoApp: App {
@@ -26,7 +26,7 @@ struct PIP_DemoApp: App {
             Button("退出") {
                 NSApplication.shared.terminate(nil)
             }
-        }   
+        }
     }
 }
 
@@ -65,7 +65,8 @@ class ViewController: NSViewController {
     private var player: AVPlayer!
     private var playerView: AVPlayerView!
     private var actionPopUpButton: NSPopUpButton!
-    private var statusLabel: NSTextField! // 添加状态标签
+    private var statusLabel: NSTextField!  // 添加状态标签
+    private var pipController: AVPictureInPictureController?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,6 +74,7 @@ class ViewController: NSViewController {
         setupPlayerView()
         setupActionPopUpButton()
         setupStatusLabel()
+        setupPIPButton()
         addCustomOverlay()
         loadVideo()
     }
@@ -88,6 +90,15 @@ class ViewController: NSViewController {
         playerView.showsFrameSteppingButtons = true
         playerView.showsSharingServiceButton = true
         playerView.showsTimecodes = true
+
+        // 设置 PIP 控制器
+        if AVPictureInPictureController.isPictureInPictureSupported() {
+            if let playerLayer = playerView.layer as? AVPlayerLayer {
+                pipController = AVPictureInPictureController(
+                    playerLayer: playerLayer)
+            }
+        }
+
         view.addSubview(playerView)
 
         NSLayoutConstraint.activate([
@@ -107,8 +118,10 @@ class ViewController: NSViewController {
         view.addSubview(actionPopUpButton)
 
         NSLayoutConstraint.activate([
-            actionPopUpButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
-            actionPopUpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            actionPopUpButton.topAnchor.constraint(
+                equalTo: view.topAnchor, constant: 10),
+            actionPopUpButton.trailingAnchor.constraint(
+                equalTo: view.trailingAnchor, constant: -10),
         ])
     }
 
@@ -138,8 +151,32 @@ class ViewController: NSViewController {
         statusLabel.drawsBackground = true
         statusLabel.isEditable = false
         statusLabel.alignment = .center
-        statusLabel.isHidden = true // 初始隐藏
+        statusLabel.isHidden = true  // 初始隐藏
         view.addSubview(statusLabel)
+    }
+
+    private func setupPIPButton() {
+        let pipButton = NSButton(
+            title: "进入画中画", target: self, action: #selector(togglePIP))
+        pipButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(pipButton)
+
+        NSLayoutConstraint.activate([
+            pipButton.topAnchor.constraint(
+                equalTo: view.topAnchor, constant: 10),
+            pipButton.leadingAnchor.constraint(
+                equalTo: view.leadingAnchor, constant: 10),
+        ])
+    }
+
+    @objc private func togglePIP() {
+        guard let pipController = pipController else { return }
+                
+            if pipController.isPictureInPictureActive {
+                pipController.stopPictureInPicture()
+            } else {
+                pipController.startPictureInPicture()
+            }
     }
 
     override func viewDidLayout() {
@@ -162,7 +199,7 @@ class ViewController: NSViewController {
             height: labelHeight
         )
         statusLabel.isHidden = false
-//        resizeWindowToFitVideo()
+        //        resizeWindowToFitVideo()
     }
 
     // 添加自定义覆盖视图
@@ -179,8 +216,10 @@ class ViewController: NSViewController {
 
         // 设置布局约束（示例：居中显示）
         NSLayoutConstraint.activate([
-            hostingView.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
-            hostingView.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor)
+            hostingView.centerXAnchor.constraint(
+                equalTo: overlayView.centerXAnchor),
+            hostingView.centerYAnchor.constraint(
+                equalTo: overlayView.centerYAnchor),
         ])
     }
 
@@ -202,7 +241,8 @@ class ViewController: NSViewController {
 
     private func loadVideo() {
         guard
-            let url = URL(string: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")
+            let url = URL(
+                string: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")
         else { return }
         player = AVPlayer(url: url)
         playerView.player = player
